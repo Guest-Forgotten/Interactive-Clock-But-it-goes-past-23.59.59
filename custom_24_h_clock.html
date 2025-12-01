@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Custom 24+ Hour Clock</title>
+  <style>
+    body { font-family: Arial, sans-serif; display: flex; flex-direction: column; align-items: center; padding: 20px; background: #f1f1f1; }
+    .clock { font-size: 3rem; margin-top: 20px; padding: 20px 40px; background: white; border-radius: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+    .controls label { display: block; margin-top: 10px; font-weight: bold; }
+    input { padding: 5px; font-size: 1rem; width: 200px; }
+  </style>
+</head>
+<body>
+  <h1>Custom 24+ Hour Clock</h1>
+
+  <div class="controls" id="controls">
+    <label>Set Date (YYYY-MM-DD):</label>
+    <input type="date" id="dateInput" />
+
+    <label>Set Time (HH:MM:SS):</label>
+    <input type="text" id="timeInput" placeholder="23:59:50" />
+
+    <button id="applyBtn">Apply</button>
+  </div>
+
+  <div class="clock" id="clockDisplay">Loading...</div>
+
+  <script>
+    let customDate = new Date();
+    let customSeconds = 0;
+
+    // Restore state if page reloads on resize
+    const saved = JSON.parse(localStorage.getItem('clockState'));
+    if (saved) {
+      customDate = new Date(saved.date);
+      customSeconds = saved.seconds;
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+      const applyBtn = document.getElementById('applyBtn');
+      if (applyBtn) applyBtn.addEventListener('click', applySettings);
+    });
+
+    function saveState() {
+      localStorage.setItem('clockState', JSON.stringify({
+        date: customDate,
+        seconds: customSeconds
+      }));
+    }
+
+    function applySettings() {
+      const dateInput = document.getElementById('dateInput');
+      const timeInput = document.getElementById('timeInput');
+
+      if (dateInput && dateInput.value) {
+        const [year, month, day] = dateInput.value.split('-').map(Number);
+        customDate = new Date(year, month - 1, day);
+      }
+
+      if (timeInput && timeInput.value) {
+        const parts = timeInput.value.split(':').map(Number);
+        if (parts.length === 3) {
+          const [h, m, s] = parts;
+          customSeconds = h * 3600 + m * 60 + s;
+        }
+      }
+
+      saveState();
+    }
+
+    function updateClock() {
+      customSeconds++;
+
+      let hours = Math.floor(customSeconds / 3600);
+      let minutes = Math.floor((customSeconds % 3600) / 60);
+      let seconds = customSeconds % 60;
+
+      let hStr = String(hours).padStart(2, '0');
+      let mStr = String(minutes).padStart(2, '0');
+      let sStr = String(seconds).padStart(2, '0');
+
+      document.getElementById('clockDisplay').innerText = `${hStr}:${mStr}:${sStr} | ${customDate.toDateString()}`;
+
+      saveState();
+    }
+
+    setInterval(updateClock, 1000);
+  </script>
+</body>
+</html>
